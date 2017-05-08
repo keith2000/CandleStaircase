@@ -20,7 +20,8 @@ if ~exist('levelThresh', 'var')
     levelThresh = 10;
 end
 
-myTransPosedVal = 9';
+myTransposedVal = 9' + 9';
+myTransposed2Val = 9' + 9;
 
 persistent listCell; % we need a persistent variable because we are recursively entering functions but don't want to visit anything more than once
 if 0==levelVal
@@ -45,6 +46,8 @@ filename = which( theM_file );
 
 bigStr = ReadTextFileIntoString(filename);
 
+bigStr=regexprep(bigStr, ['\%.*?', char(10)], char(10)); %strip comments
+
 wordCell = regexp(bigStr, '\W', 'split');
 
 wordCell = unique( wordCell );
@@ -54,10 +57,11 @@ for wordLoop = 1:length( wordCell )
     if length(wordCell{wordLoop}) >= lenThresh
         
         thisStr = which(  wordCell{wordLoop}  );
+        [dPart, fPart, ~] = fileparts(thisStr);
         
-        if ~isempty( strfind(thisStr, matchStr) )
+        if ~isempty( regexp(dPart, matchStr, 'once') )
             
-            [~, fPart, ~] = fileparts(thisStr);
+            
             
             if strcmp(fPart,wordCell{wordLoop}) %test for case "trancheSize"~="TrancheSize"
                 if ~ismember(  wordCell{wordLoop}, listCell )
@@ -67,7 +71,7 @@ for wordLoop = 1:length( wordCell )
                         currentSize = length(listCell);
                         
                         listCell{end+1} = wordCell{wordLoop};
-                        subListCell = DependencyList( wordCell{wordLoop}, levelVal+1, levelThresh, 'matchStr', matchStr  );
+                        subListCell = GenDependencyList( wordCell{wordLoop}, levelVal+1, levelThresh, 'matchStr', matchStr  );
                         if ~isempty(subListCell)
                             listCell = [listCell, subListCell{:}];
                         end
