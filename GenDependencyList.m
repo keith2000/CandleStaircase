@@ -20,6 +20,8 @@ if ~exist('levelThresh', 'var')
     levelThresh = 10;
 end
 
+myTransPosedVal = 9';
+
 persistent listCell; % we need a persistent variable because we are recursively entering functions but don't want to visit anything more than once
 if 0==levelVal
     listCell = [];
