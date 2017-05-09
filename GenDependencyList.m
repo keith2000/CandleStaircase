@@ -1,27 +1,23 @@
-function listCell_ = GenDependencyList( theM_file, levelVal, levelThresh, varargin )
+function listCell_ = GenDependencyList( theM_file,  verbosityLevel, levelThresh, matchStr,  lenThresh, levelVal )
 
-%»» orignally authored by KF 2017-02-20 11h38:
-%e.g. DependencyList('BloomIntratest1')
-%lists all local (that is, Dropbox) dependencies for your M-file
-%Useful if you need to copy/move them
+%e.g. GenDependencyList(  'InternationalFraSwap1' )
+%e.g. GenDependencyList(  'InternationalFraSwap1', 99 )
+%e.g. GenDependencyList(  'InternationalFraSwap1', 0 ) %no progress bar 
+%e.g. GenDependencyList(  'InternationalFraSwap1', [], 22 ) %goes deeper. empty inputs take on their default values via SetEmptyOrNonexistentVarToDefault
 
+%these are words to ignore. If a string or var name has the same name as a
+%function then it will be picked up by GenDependencyList. Add to this list
+%to force exclusion. (Note that the function name is arguably poorly named if this is the case.)
+excludeCell = {'index', 'easter', 'examples', 'optimization','connect', 'Debug','startup', 'scratch', 'lload', 'rogle', 'google', 'cprintf', 'count', 'color', 'Color', 'Contents', 'MyPalette', 'boundary', 'normal', 'ensure', 'test', 'stop', 'com'};
 
-lenThresh = 5;
-matchStr = 'Dropbox';
-verbosityLevel = 1;
-badCell = {'examples', 'optimization','connect', 'Debug','startup', 'scratch', 'lload', 'rogle', 'google', 'cprintf', 'count', 'color', 'Color', 'Contents', 'MyPalette', 'boundary', 'normal', 'ensure', 'test', 'stop', 'com'};
-VararginModifyDefaults( varargin{:} )
+SetEmptyOrNonexistentVarToDefault('levelVal', 0);
+SetEmptyOrNonexistentVarToDefault('levelThresh', 10);
+SetEmptyOrNonexistentVarToDefault('matchStr', 'Dropbox|GitHub' ); %assumes that user files live in a folder that regexp matches to either Dropbox or to GitHub
+SetEmptyOrNonexistentVarToDefault('verbosityLevel', 1);
+SetEmptyOrNonexistentVarToDefault('lenThresh', 5)
 
-if ~exist('levelVal', 'var')
-    levelVal = 0;
-end
+assert(all(ischar(theM_file)), 'theM_file must be a string containing the relevant function/script name')
 
-if ~exist('levelThresh', 'var')
-    levelThresh = 10;
-end
-
-myTransposedVal = 9' + 9';
-myTransposed2Val = 9' + 9;
 
 persistent listCell; % we need a persistent variable because we are recursively entering functions but don't want to visit anything more than once
 if 0==levelVal
@@ -65,13 +61,17 @@ for wordLoop = 1:length( wordCell )
             
             if strcmp(fPart,wordCell{wordLoop}) %test for case "trancheSize"~="TrancheSize"
                 if ~ismember(  wordCell{wordLoop}, listCell )
-                    if ~ismember(  wordCell{wordLoop}, badCell )
+                    if ~ismember(  wordCell{wordLoop}, excludeCell )
                         
                         
                         currentSize = length(listCell);
                         
                         listCell{end+1} = wordCell{wordLoop};
-                        subListCell = GenDependencyList( wordCell{wordLoop}, levelVal+1, levelThresh, 'matchStr', matchStr  );
+                        %subListCell = GenDependencyList( wordCell{wordLoop}, levelVal+1, levelThresh, 'matchStr', matchStr  );
+                        subListCell = GenDependencyList( wordCell{wordLoop}, verbosityLevel, levelThresh, matchStr,  lenThresh, levelVal+1 );
+                         
+                        %GenDependencyList( theM_file, levelVal, levelThresh, matchStr, verbosityLevel, excludeCell, lenThresh )
+
                         if ~isempty(subListCell)
                             listCell = [listCell, subListCell{:}];
                         end
