@@ -6,8 +6,11 @@
 //@@//FormFilename('C:\Users\keith\Documents\GitHub\SHA-3\CommandParser.cpp')
 //@@//FormFilename('C:\Users\keith\Documents\GitHub\SHA-3\Keccak.cpp')
 //@@//FormFilename('C:\Users\keith\Documents\GitHub\SHA-3\HashFunction.cpp')
+//@@//FormFilename('C:\Dropbox (Fairtree Newlands)\Library\easy-ecc-master\ecc2.c')
 //include directories:
 //@@//FormFilename('C:\Users\keith\Documents\GitHub\SHA-3\')
+//@@//FormFilename('C:\Dropbox (Fairtree Newlands)\Library\easy-ecc-master')
+
 
 //"C:\Users\keith\Documents\GitHub\SHA-3\Keccak.cpp"
 
@@ -18,6 +21,8 @@
 #include <vector>
 
 #include "Keccak.h"
+
+#include "ecc.h"
 
 // unsigned int hashType = 0;
 // unsigned int hashWidth = 512;
@@ -88,6 +93,13 @@ const int        mySize = 3;
 
         
 			keccakUpdate((uint8_t*)buf, 0, mySize, st);
+            
+            
+uint8_t p_publicKey[1024+1];
+uint8_t p_privateKey[1024];
+
+            ecc_make_key( p_publicKey,p_privateKey );
+
 
 
         unsigned char *op = keccakDigest(st);
