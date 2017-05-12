@@ -15,12 +15,12 @@ dateVector = BusinessDateRange( startDayVal, endDayVal, 'ExcludeWeekendsOnly');
 %stop
 
 %dataBlock = NaN( numel(dateVector), 29 );
-
+dataBlock=[];
 
 dirname = [DropboxFairtreeNewlandsDir(), '\SharedRmbamHf\Data\Bloomberg\FraSwap\'];
 %C:\Dropbox (Fairtree Newlands)\SharedRmbamHf\Data\Bloomberg\FraSwap\ZAR
 
-bestFilename = FormFilename('%s\SharedRmbamHf\Data\Keith\%s_%s.mat', dirname, mfilename, currencyStr )
+bestFilename = FormFilename('%s\SharedRmbamHf\Data\Keith\%s_%s.mat', dirname, mfilename, currencyStr );
 if exist(bestFilename, 'file')
     bestStruct = load(bestFilename);
 else
@@ -50,16 +50,31 @@ for dateLoop = 1:length(remainingDateVec)
     clear loadStruct;
     loadStruct  = load(filename);
     
-    dataBlock(dateVector==remainingDateVec(dateLoop), :) = loadStruct.the29Vec ;
     
-    tempsave, stop
+
+        fraSwapVec = [loadStruct.fraSwapVec.val];
+        if isempty(dataBlock)
+           %now we know the number of columns, we can initialise
+           dataBlock = NaN( length(dateVector), length(fraSwapVec)  );
+           fraSwapBlock.nameCell = {loadStruct.fraSwapVec.name};
+           fraSwapBlock.tickerCell = {loadStruct.fraSwapVec.ticker};
+           
+           fraSwapBlock.isSwapVec =[loadStruct.fraSwapVec.isSwap];
+           fraSwapBlock.maturityInYearsVec =[loadStruct.fraSwapVec.maturityInYears];
+        end
+        
+    dataBlock(dateVector==remainingDateVec(dateLoop), :) = fraSwapVec;
+    
+       %     tempsave, stop
+
+    
 end
 
-if ~isempty(remainingDateVec)
-    %we've added some data: let's save it
-    save(bestFilename, 'the29Block', 'dateVector');
-    fprintf('saved %s\n',bestFilename )
-end
+% if ~isempty(remainingDateVec)
+%     %we've added some data: let's save it
+%     save(bestFilename, 'the29Block', 'dateVector');
+%     fprintf('saved %s\n',bestFilename )
+% end
 
 
 fraSwapBlock.dateVector = dateVector;
