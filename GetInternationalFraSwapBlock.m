@@ -1,5 +1,7 @@
 function fraSwapBlock = GetInternationalFraSwapBlock( startDayVal, endDayVal, currencyStr )
 
+%fraSwapBlock = GetInternationalFraSwapBlock( datenum('1-jan-2014'), datenum('1-feb-2014'), 'GBP' )
+
 SetEmptyOrNonexistentVarToDefault('startDayVal', datenum('1-jan-2004'))
 SetEmptyOrNonexistentVarToDefault('endDayVal', fix(now-1))
 SetEmptyOrNonexistentVarToDefault('currencyStr', 'ZAR')
@@ -18,7 +20,7 @@ dateVector = BusinessDateRange( startDayVal, endDayVal, 'ExcludeWeekendsOnly');
 dirname = [DropboxFairtreeNewlandsDir(), '\SharedRmbamHf\Data\Bloomberg\FraSwap\'];
 %C:\Dropbox (Fairtree Newlands)\SharedRmbamHf\Data\Bloomberg\FraSwap\ZAR
 
-bestFilename = FormFilename('%s\SharedRmbamHf\Data\Keith\%s_%s.mat', DropboxFairtreeNewlandsDir(), mfilename, currencyStr );
+bestFilename = FormFilename('%s\SharedRmbamHf\Data\Keith\%s_%s.mat', dirname, mfilename, currencyStr )
 if exist(bestFilename, 'file')
     bestStruct = load(bestFilename);
 else
@@ -31,33 +33,26 @@ end
 %indVecA
 %indVecB
 if ~isempty(indVecB)
-    dataBlock(indVecA, :) =  bestStruct.the29Block(indVecB, :);
+    dataBlock(indVecA, :) =  bestStruct.data(indVecB, :);
 end
 
 remainingDateVec = setdiff(dateVector, overLapVec);
 
 for dateLoop = 1:length(remainingDateVec)
     %ProgressBar( dateLoop , length(remainingDateVec));
-    filename = FormFilename('%s/DiscountFraSwap%s.mat', dirname, datestr( remainingDateVec(dateLoop), 29 ) );
+    %"C:\Dropbox (Fairtree Newlands)\SharedRmbamHf\Data\Bloomberg\FraSwap\ZAR\FraSwapVecZAR1998-12-10.mat"
+    filename = FormFilename('%s/%s/FraSwapVec%s%s.mat', dirname, currencyStr, currencyStr, datestr( remainingDateVec(dateLoop), 29 ) )
+    if ~exist(filename, 'file')
+       error('%s does not exist: code for generating it still to be implemented.') 
+    end
+    
     disp(filename)
     clear loadStruct;
     loadStruct  = load(filename);
     
-    if datenum('2006-11-03')==remainingDateVec(dateLoop)
-        loadStruct.the29Vec(1) = 0.08776 ; %special case: missing jibar
-    end
-    if datenum('2005-07-04')==remainingDateVec(dateLoop)
-        loadStruct.the29Vec(end) = 0.074675 ; %special case: missing 30y
-    end
+    dataBlock(dateVector==remainingDateVec(dateLoop), :) = loadStruct.the29Vec ;
     
-    if any(  isnan(loadStruct.the29Vec)  )
-        loadStruct.the29Vec = Fixed29VecFromNan29Vec( loadStruct.the29Vec );
-    end
-    
-    
-    
-    assert(all( ~isnan( loadStruct.the29Vec ) ));
-    the29Block(dateVector==remainingDateVec(dateLoop), :) = loadStruct.the29Vec ;
+    tempsave, stop
 end
 
 if ~isempty(remainingDateVec)
@@ -68,5 +63,5 @@ end
 
 
 fraSwapBlock.dateVector = dateVector;
-fraSwapBlock.data = the29Block;
+fraSwapBlock.data = dataBlock;
 
